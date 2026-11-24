@@ -1,0 +1,45 @@
+
+name: Build Luxora Hisab Nikash APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'LuxoraHisabNikash.zip'
+      - '.github/workflows/blank.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract Project
+        run: |
+          unzip -o LuxoraHisabNikash.zip -d source
+          find source -name settings.gradle.kts
+
+      - name: Build APK
+        run: |
+          PROJECT_DIR=$(dirname "$(find source -name settings.gradle.kts -print -quit)")
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Luxora-Hisab-Nikash-APK
+          path: source/**/build/outputs/apk/debug/*.apk
